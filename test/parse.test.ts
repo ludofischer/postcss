@@ -278,4 +278,43 @@ test('does not overflow the stack on deeply nested nodes', () => {
   is(count, depth + 1)
 })
 
+test('keeps escaped whitespace in declaration values', () => {
+  let semicolon = parse('a{margin:x\\ ;}').first as Rule
+  let decl = semicolon.first as Declaration
+  is(decl.value, 'x\\ ')
+  is(decl.raws.value, undefined)
+
+  let end = parse('a{margin:x\\ }').first as Rule
+  is((end.first as Declaration).value, 'x\\ ')
+  is(end.raws.after, '')
+
+  let important = parse('a{margin:x\\ !important}').first as Rule
+  decl = important.first as Declaration
+  is(decl.value, 'x\\ ')
+  is(decl.important, true)
+  decl.raws.important = '!important'
+  is(important.toString(), 'a{margin:x\\ !important}')
+})
+
+test('keeps escaped tab in declaration values', () => {
+  let root = parse('a{display:none\\\t!important}')
+  let decl = (root.first as Rule).first as Declaration
+  is(decl.value, 'none\\\t')
+  is(decl.important, true)
+  decl.raws.important = '!important'
+  is(root.toString(), 'a{display:none\\\t!important}')
+})
+
+test('does not escape newline after backslash', () => {
+  let rule = parse('a{margin:x\\\n}').first as Rule
+  is((rule.first as Declaration).value, 'x\\')
+  is(rule.raws.after, '\n')
+})
+
+test('keeps escaped whitespace in selectors', () => {
+  let rule = parse('.a\\ {}').first as Rule
+  is(rule.selector, '.a\\ ')
+  is(rule.raws.between, '')
+})
+
 test.run()

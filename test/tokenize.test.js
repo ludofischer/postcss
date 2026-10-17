@@ -292,6 +292,20 @@ test('tokenizes hexadecimal escape', () => {
   ])
 })
 
+test('escapes whitespace', () => {
+  // Escapes are separate word tokens, as in the hexadecimal escape test.
+  // Only the escaped space and tab move from a space token into the escape.
+  run('a\\ b\\\tc\\\n', [
+    ['word', 'a', 0, 0],
+    ['word', '\\ ', 1, 2],
+    ['word', 'b', 3, 3],
+    ['word', '\\\t', 4, 5],
+    ['word', 'c', 6, 6],
+    ['word', '\\', 7, 7],
+    ['space', '\n']
+  ])
+})
+
 test('ignore unclosed per token request', () => {
   function token(css, opts) {
     let processor = tokenizer(new Input(css), opts)
